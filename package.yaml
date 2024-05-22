@@ -4,7 +4,7 @@ github:              "markcornwell/pawnsplat"
 license:             BSD-3-Clause
 author:              "Mark R Cornwell"
 maintainer:          "mark.cornwell@me.com"
-copyright:           "Copyright (c) 2022 by Mark R. Cornwell, All Rights Reserved"
+copyright:           "Copyright (c) 2024 by Mark R. Cornwell, All Rights Reserved"
 
 extra-source-files:
 - README.md
@@ -21,6 +21,7 @@ description:         Please see the README on GitHub at <https://github.com/mark
 
 dependencies:
 - base >= 4.7 && < 5
+- gloss==1.13.*
 
 ghc-options:
 - -Wall
@@ -34,7 +35,7 @@ ghc-options:
 - -Wredundant-constraints
 
 library:
-  source-dirs: src
+  source-dirs: app
 
 executables:
   pawnsplat-exe:

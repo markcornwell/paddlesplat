@@ -2,7 +2,6 @@ module Main (main, PongGame, render, initialState) where
 
 import Graphics.Gloss
 import Graphics.Gloss.Interface.Pure.Game
-import GHC.Stats (GCDetails(gcdetails_mem_in_use_bytes))
 
 {---- Base ----}
 
@@ -21,7 +20,10 @@ background = black
 fps :: Int
 fps = 60
 
-{---  Model ---}
+{----------------------------  Model ------------------------------
+Here is the basic abstract model of the game.  Represents the state
+of game and how that state changes over discrete incrments of time.
+-------------------------------------------------------------------}
 
 -- | Data describing the state of the pong game.
 data PongGame = Game
@@ -32,7 +34,6 @@ data PongGame = Game
   , player2 :: Float         -- ^ Right player paddle height
   , paused :: Bool
   } deriving Show
-
 
 initialState :: PongGame
 initialState = Game
@@ -123,10 +124,14 @@ paddleCollision game radius = player1Collision || player2Collision
     player2Collision =  y > player2 game  && y < player2 game + 80 &&  x + radius > (-120) && x - radius < (-100)
 
 
-{------------------------------- Control ----------------------------------
+{------------------------------------ Control ----------------------------------
+The use controls, how the user interacts with the model.  They mostly (always)
+poke at the game state.  The model takes over the physics of the game after
+that.
+
 Note how the semantics start as inline code inside the event handlers.
 As the game ecolves these tend to get factored out into an API like layer.
-----------------------------------------------------------------------------}
+--------------------------------------------------------------------------------}
 
 -- | Respond to key events. 
 handleKeys :: Event -> PongGame -> PongGame 
@@ -164,7 +169,10 @@ main :: IO ()
 main = play window background fps initialState render handleKeys update
 
 
-{------  View -------}
+{-----------------------------------  View -------------------------------
+Rendering a view onto the model state.  Changes to the visual appearance
+of the game go here.
+--------------------------------------------------------------------------}
 
 -- | Convert a game state into a picture
 render :: PongGame -> Picture

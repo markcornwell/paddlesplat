@@ -1,18 +1,24 @@
+-- | Main routine for Pong game
 module Main (main, PongGame, render, initialState) where
 
 import Graphics.Gloss
 import Graphics.Gloss.Interface.Pure.Game
 
-{---- Base ----}
-
+{---------------------------- Base ------------------------------
+Holds things common to serveral modules.  Code tends to migrate
+here to avoice circular dependencies, calling up in violation
+of heirarchy.
+----------------------------------------------------------------}
 width, height, offset :: Int
 width = 300
 height = 300
 offset = 100
 
+-- | The main window for the game
 window :: Display
 window = InWindow "Pong" (width,height) (offset,offset)
 
+-- | A default background color 
 background :: Color
 background = black
 
@@ -143,24 +149,24 @@ handleKeys (EventKey (Char 'c') _ _ _) game = game { ballLoc = (0,0) }
 handleKeys (EventKey (Char 'p') Down _ _) game = game { paused = (not . paused) game }
 
 -- | For 'w' move the left paddle up
-handleKeys (EventKey (Char 'w') Down _ _) game = game { player1 = player1' }
+handleKeys (EventKey (Char 'w') Down _ _) game = game { player2 = player2' }
   where 
-    player1' = player1 game + 10
+    player2' = player2 game + 10
 
 -- | For 's' move the left paddle down
-handleKeys (EventKey (Char 's') Down _ _) game = game { player1 = player1' }
+handleKeys (EventKey (Char 's') Down _ _) game = game { player2 = player2' }
   where 
-    player1' = player1 game - 10
+    player2' = player2 game - 10
 
 -- | For up arrow move the right paddle up 
-handleKeys (EventKey (SpecialKey KeyUp) Down _ _) game = game { player2 = player2' }
+handleKeys (EventKey (SpecialKey KeyUp) Down _ _) game = game { player1 = player1' }
   where
-    player2' = player2 game + 10 
+    player1' = player1 game + 10 
 
 -- | for down arrow move the right paddle down
-handleKeys (EventKey (SpecialKey KeyDown) Down _ _) game = game { player2 = player2' }
+handleKeys (EventKey (SpecialKey KeyDown) Down _ _) game = game { player1 = player1' }
   where
-    player2' = player2 game - 10 
+    player1' = player1 game - 10 
 
 -- | Do nothing for the other events. 
 handleKeys _ game = game 

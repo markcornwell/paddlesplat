@@ -1,8 +1,11 @@
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+{-# HLINT ignore "Redundant bracket" #-}
 -- | Main routine for Pong game
 module Main (main, PongGame, render, initialState) where
 
 import Graphics.Gloss
 import Graphics.Gloss.Interface.Pure.Game
+import Control.Monad (zipWithM)
 
 {---------------------------- Base ------------------------------
 Holds things common to serveral modules.  Code tends to migrate
@@ -43,10 +46,10 @@ data PongGame = Game
 
 initialState :: PongGame
 initialState = Game
-  { ballLoc = (-10, 30)
-  , ballVel = (40, 40)
-  , player1 = 40
-  , player2 = 80
+  { ballLoc = (0, 0)
+  , ballVel = (-20, 10)
+  , player1 = 0
+  , player2 = 0
   , paused = False 
   }
 
@@ -71,7 +74,7 @@ update :: Float -> PongGame -> PongGame
 update seconds game = 
   if paused game then game 
   else (paddleBounce . wallBounce . moveBall seconds) game 
-
+ 
 -- | Detect a collision with a paddle.  Upon collisions,
 -- change the velocity of the ball to bounce off the paddle. 
 paddleBounce :: PongGame -> PongGame
@@ -86,7 +89,7 @@ paddleBounce game = game { ballVel = (vx', vy) }
     vx' = if paddleCollision game radius 
           then
             -- Update the velocity 
-            -vx
+            (-1) * vx
           else
             -- Do nothing.  Return old velocity. 
             vx
@@ -122,12 +125,15 @@ wallCollision (_, y) radius = topCollision || bottomCollision
     topCollision    = y - radius <= - (fromIntegral width / 2)
     bottomCollision = y + radius >=   fromIntegral width / 2
 
+between :: Float -> Float -> Float -> Bool
+between x lob hib = lob <= x && x <= hib 
+
 paddleCollision :: PongGame -> Radius -> Bool 
-paddleCollision game radius = player1Collision || player2Collision
+paddleCollision game _r = player1Collision || player2Collision
   where
-    (x,y) = ballLoc game 
-    player1Collision =  y > player1 game  && y < player1 game + 80 &&  x + radius >   100  && x - radius < 120 
-    player2Collision =  y > player2 game  && y < player2 game + 80 &&  x + radius > (-120) && x - radius < (-100)
+    (x,y) = ballLoc game
+    player1Collision = between y (player1 game - 40) (player1 game + 40) && x < 0 && x + 100 < 0
+    player2Collision = between y (player2 game - 40) (player2 game + 40) && x > 0 && x - 100 > 0
 
 
 {------------------------------------ Control ----------------------------------
@@ -149,24 +155,16 @@ handleKeys (EventKey (Char 'c') _ _ _) game = game { ballLoc = (0,0) }
 handleKeys (EventKey (Char 'p') Down _ _) game = game { paused = (not . paused) game }
 
 -- | For 'w' move the left paddle up
-handleKeys (EventKey (Char 'w') Down _ _) game = game { player2 = player2' }
-  where 
-    player2' = player2 game + 10
+handleKeys (EventKey (Char 'w') Down _ _) game = game { player1 = player1 game + 10 }
 
 -- | For 's' move the left paddle down
-handleKeys (EventKey (Char 's') Down _ _) game = game { player2 = player2' }
-  where 
-    player2' = player2 game - 10
+handleKeys (EventKey (Char 's') Down _ _) game = game { player1 = player1 game - 10 }
 
 -- | For up arrow move the right paddle up 
-handleKeys (EventKey (SpecialKey KeyUp) Down _ _) game = game { player1 = player1' }
-  where
-    player1' = player1 game + 10 
+handleKeys (EventKey (SpecialKey KeyUp) Down _ _) game = game { player2 = player2 game + 10}
 
 -- | for down arrow move the right paddle down
-handleKeys (EventKey (SpecialKey KeyDown) Down _ _) game = game { player1 = player1' }
-  where
-    player1' = player1 game - 10 
+handleKeys (EventKey (SpecialKey KeyDown) Down _ _) game = game { player2 = player2 game - 10 }
 
 -- | Do nothing for the other events. 
 handleKeys _ game = game 
@@ -186,8 +184,11 @@ render game =
   pictures
     [ ball
     , walls
-    , mkPaddle rose 120 $ player1 game
-    , mkPaddle orange (-120) $ player2 game
+    , mkPaddle rose (-120) (player1 game)
+    , mkPaddle orange 120  (player2 game)
+    , color white $ line [(0.0, 150.0), (0.0, -150.0)]
+    , translate (-100) (-100) $ scale 0.1 0.1 $ color white $ text (show $ fst (ballLoc game))
+    , translate (-100) (-115) $ scale 0.1 0.1 $ color white $ text (show $ snd (ballLoc game))
     ]
   where
     -- The pong ball 
@@ -204,8 +205,6 @@ render game =
     -- Make a paddle of a given border and vertical offset 
     mkPaddle :: Color -> Float -> Float -> Picture
     mkPaddle col x y = pictures
-      [ translate x y $ color col $ rectangleSolid 20 80
-      , translate x y $ color paddleColor $ rectangleSolid 20 80
-      ]
+      [ translate x y $ color col $ rectangleSolid 20 80 ]
 
-    paddleColor = light (light blue)
+    -- paddleColor = light (light blue)

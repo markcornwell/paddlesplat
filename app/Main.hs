@@ -5,17 +5,24 @@ module Main (main, PongGame, render, initialState) where
 
 import Graphics.Gloss
 import Graphics.Gloss.Interface.Pure.Game
-import Control.Monad (zipWithM)
 
 {---------------------------- Base ------------------------------
 Holds things common to serveral modules.  Code tends to migrate
 here to avoice circular dependencies, calling up in violation
 of heirarchy.
 ----------------------------------------------------------------}
-width, height, offset :: Int
-width = 300
+
+-- | Width of the main game window
+width :: Int
+width = 600
+
+-- | Height of the main game window
+height :: Int
 height = 300
-offset = 100
+
+-- | How far to offset the game window inside the screen
+offset :: Int
+offset = 200
 
 -- | The main window for the game
 window :: Display
@@ -24,6 +31,20 @@ window = InWindow "Pong" (width,height) (offset,offset)
 -- | A default background color 
 background :: Color
 background = black
+
+-- | Radius of the ball
+radius :: Float
+radius = 10.0
+
+paddleWidth :: Float 
+paddleWidth = 20
+
+paddleHeight :: Float
+paddleHeight = 80
+
+-- | Distance of the paddle from the net
+paddleDistance :: Float
+paddleDistance = 200  --100.0
 
 -- | Number of frames to show per second
 fps :: Int
@@ -39,6 +60,7 @@ data PongGame = Game
   { ballLoc :: (Float,Float) -- ^ Pong ball (x,y) location.
   , ballVel :: (Float,Float) -- ^ Pong ball (x,y) velocity.
   , player1 :: Float         -- ^ Left player paddle height.
+                             -- Measured from center of paddle to y=0.
                              -- Zero is the middle of the screen. 
   , player2 :: Float         -- ^ Right player paddle height
   , paused :: Bool
@@ -54,19 +76,15 @@ initialState = Game
   }
 
 -- | Update the ball position using its current velocity
-moveBall :: Float  -- ^ The number of seconds since last update
+moveBall :: Float    -- ^ The number of seconds since last update
          -> PongGame -- ^ The initial game state
          -> PongGame -- ^ A new game state with an updated ball position
 moveBall seconds game = game { ballLoc = (x',y') }
   where
-    -- Old locations and velocities
     (x,y) = ballLoc game
     (vx,vy) = ballVel game
-
-    -- New locations 
     x' = x + vx * seconds
     y' = y + vy * seconds
-
 
 -- | Update the game by moving the ball 
 -- Ignore the ViewPort argument 
@@ -80,39 +98,18 @@ update seconds game =
 paddleBounce :: PongGame -> PongGame
 paddleBounce game = game { ballVel = (vx', vy) }
   where
-    -- Radius.  Use the same things as in `render`.
-    radius = 10
-
-    -- The old velocities
-    (vx,vy) = ballVel game
-
-    vx' = if paddleCollision game radius 
-          then
-            -- Update the velocity 
-            (-1) * vx
-          else
-            -- Do nothing.  Return old velocity. 
-            vx
+    --radius = 10       -- Radius.  Use the same things as in `render`.
+    (vx,vy) = ballVel game      -- The old velocities
+    vx' = if paddleCollision game radius then -vx else vx
 
 -- | Detect a collision with one of the side walls.  Upon collisions,
 -- update the velocity of hte ball to bounce it off the wall. 
 wallBounce :: PongGame -> PongGame
 wallBounce game = game { ballVel = (vx, vy') }
   where
-    -- Radius.  Use the same things as in `render`.
-    radius = 10
-
-    -- The old velocities
-    (vx,vy) = ballVel game
-
-    vy' = if wallCollision (ballLoc game) radius
-          then
-            -- Update the velocity 
-            -vy
-          else
-            -- Do nothing.  Return old velocity. 
-            vy
-
+    --radius = 10                 -- Radius.  Use the same things as in `render`.
+    (vx,vy) = ballVel game      -- The old velocities
+    vy' = if wallCollision (ballLoc game) radius then -vy else vy
 
 type Radius = Float
 type Position = (Float,Float)
@@ -120,10 +117,10 @@ type Position = (Float,Float)
 -- | Give position and radius of the ball, return whether a collision
 -- occurred. 
 wallCollision :: Position -> Radius -> Bool
-wallCollision (_, y) radius = topCollision || bottomCollision
+wallCollision (_, y) r = topCollision || bottomCollision
   where
-    topCollision    = y - radius <= - (fromIntegral width / 2)
-    bottomCollision = y + radius >=   fromIntegral width / 2
+    topCollision    = y - r <= - (fromIntegral height / 2)
+    bottomCollision = y + r >=   fromIntegral height / 2
 
 between :: Float -> Float -> Float -> Bool
 between x lob hib = lob <= x && x <= hib 
@@ -132,16 +129,18 @@ paddleCollision :: PongGame -> Radius -> Bool
 paddleCollision game _r = player1Collision || player2Collision
   where
     (x,y) = ballLoc game
-    player1Collision = between y (player1 game - 40) (player1 game + 40) && x < 0 && x + 100 < 0
-    player2Collision = between y (player2 game - 40) (player2 game + 40) && x > 0 && x - 100 > 0
-
+    hph = paddleHeight / 2
+    --player1Collision = between y (player1 game - hph) (player1 game + hph) && x < 0 && x + 100 < 0
+    --player2Collision = between y (player2 game - hph) (player2 game + hph) && x > 0 && x - 100 > 0
+    player1Collision = between y (player1 game - hph) (player1 game + hph) && x < 0 && x + paddleDistance - paddleWidth < 0
+    player2Collision = between y (player2 game - hph) (player2 game + hph) && x > 0 && x - paddleDistance + paddleWidth > 0
 
 {------------------------------------ Control ----------------------------------
 The use controls, how the user interacts with the model.  They mostly (always)
 poke at the game state.  The model takes over the physics of the game after
 that.
 
-Note how the semantics start as inline code inside the event handlers.
+Note how the semantics start as inline code inside the event handlers.sss
 As the game ecolves these tend to get factored out into an API like layer.
 --------------------------------------------------------------------------------}
 
@@ -182,29 +181,29 @@ of the game go here.
 render :: PongGame -> Picture
 render game =
   pictures
-    [ ball
-    , walls
-    , mkPaddle rose (-120) (player1 game)
-    , mkPaddle orange 120  (player2 game)
-    , color white $ line [(0.0, 150.0), (0.0, -150.0)]
+    [ renderBall
+    , renderWalls
+    , renderPaddle rose (-paddleDistance) (player1 game)
+    , renderPaddle orange paddleDistance  (player2 game)
+    , color green $ line [(0.0, fromIntegral height / 2), (0.0, (- (fromIntegral height)) / 2)]
     , translate (-100) (-100) $ scale 0.1 0.1 $ color white $ text (show $ fst (ballLoc game))
     , translate (-100) (-115) $ scale 0.1 0.1 $ color white $ text (show $ snd (ballLoc game))
     ]
   where
     -- The pong ball 
-    ball = uncurry translate (ballLoc game) $ color ballColor $ circleSolid 10
+    renderBall = uncurry translate (ballLoc game) $ color ballColor $ circleSolid 10
     ballColor = dark red
 
     -- The bottom and top walls 
     wall :: Float -> Picture
-    wall offset' = translate 0 offset' $ color wallColor $ rectangleSolid 270 10
+    wall y = translate 0 y $ color wallColor $ rectangleSolid (fromIntegral width) 10
 
     wallColor = greyN 0.5
-    walls = pictures [wall 150, wall (-150)]
+    renderWalls = pictures [wall (fromIntegral height / 2), wall (- (fromIntegral height / 2))]
 
-    -- Make a paddle of a given border and vertical offset 
-    mkPaddle :: Color -> Float -> Float -> Picture
-    mkPaddle col x y = pictures
-      [ translate x y $ color col $ rectangleSolid 20 80 ]
+    -- Picture of a paddle at given x,y offset from origin
+    renderPaddle :: Color -> Float -> Float -> Picture
+    renderPaddle col x y = pictures
+      [ translate x y $ color col $ rectangleSolid paddleWidth paddleHeight ]
 
     -- paddleColor = light (light blue)

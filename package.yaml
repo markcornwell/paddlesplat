@@ -38,7 +38,7 @@ library:
   source-dirs: app
 
 executables:
-  pawnsplat-exe:
+  paddlesplat-exe:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
@@ -49,7 +49,7 @@ executables:
     - paddlesplat
 
 tests:
-  pawnsplat-test:
+  paddlesplat-test:
     main:                Spec.hs
     source-dirs:         test
     ghc-options:
@@ -57,4 +57,4 @@ tests:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - pawnsplat
+    - paddlesplat

@@ -1,8 +1,8 @@
 module Lib
-    ( pawnSplat
+    ( paddleSplat
     ) where
 
-pawnSplat :: IO ()
-pawnSplat = putStrLn "Welcome to Pawn Splat"
+paddleSplat :: IO ()
+paddleSplat = putStrLn "Welcome to Paddle Splat"
 
 

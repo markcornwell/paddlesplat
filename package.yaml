@@ -1,6 +1,6 @@
-name:                pawnsplat
+name:                paddlesplat
 version:             0.1.0.0
-github:              "markcornwell/pawnsplat"
+github:              "markcornwell/paddlesplat"
 license:             BSD-3-Clause
 author:              "Mark R Cornwell"
 maintainer:          "mark.cornwell@me.com"
@@ -17,7 +17,7 @@ extra-source-files:
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
 # common to point users to the README.md file.
-description:         Please see the README on GitHub at <https://github.com/markcornwell/pawnsplat#readme>
+description:         Please see the README on GitHub at <https://github.com/markcornwell/paddlesplat#readme>
 
 dependencies:
 - base >= 4.7 && < 5
@@ -46,7 +46,7 @@ executables:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - pawnsplat
+    - paddlesplat
 
 tests:
   pawnsplat-test:

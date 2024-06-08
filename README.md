@@ -17,6 +17,10 @@ or a skeleton for more complex games.
 * Save and Restore Games
 * Playback saved games
 * Continue saved games 
+* Incorporation of AI to play vs player
+* Remote multi-player
+* Introduction of spash screen and credits
+* Add automated testing
 
 ## Notes
 ### Scale and Customization
@@ -50,7 +54,3 @@ to divide the game into more files.  As the codebase of a game grows
 it is common to break files into smaller files, or intoduce new 
 sub-directories to group files around a specific concept.
 The framework should allow for this flexibility.
-
-
-
-

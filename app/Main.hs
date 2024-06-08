@@ -3,10 +3,7 @@
 
 -- | Main routine for Pong like game.  This program is intended to be
 -- a minimal example of a framework that can be used as a template
--- or a skeleton for more complex games.
---
--- Features
--- * 
+-- or a skeleton for more complex games. (See README.md)
 
 module Main (main, PongGame, render, initialState) where
 
@@ -143,7 +140,6 @@ paddleBounce game = game { ballVel = (vx', vy) }
 wallBounce :: PongGame -> PongGame
 wallBounce game = game { ballVel = (vx, vy') }
   where
-    --radius = 10                 -- Radius.  Use the same things as in `render`.
     (vx,vy) = ballVel game      -- The old velocities
     vy' = if wallCollision (ballLoc game) radius then -vy else vy
 
@@ -265,8 +261,6 @@ render game =
     -- The bottom and top walls 
     wall :: Float -> Picture
     wall y = translate 0 y $ color wallColor $ rectangleSolid (fromIntegral width) 10
-
-
 
     renderWalls = pictures [wall (fromIntegral height / 2), wall (- (fromIntegral height / 2))]
 

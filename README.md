@@ -5,7 +5,7 @@ or a skeleton for more complex games.
 
 ## Features Completed
 * Standard model-view-controller pattern
-* Use of the gloss game and simulation framework
+* Built on the gloss game and simulation framework
 * Programmed entirely in Haskell
 * Player actions factored into an API
 

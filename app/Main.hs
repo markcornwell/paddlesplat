@@ -59,6 +59,9 @@ paddleDistance = 200  --100.0
 paddleSpeed :: Float 
 paddleSpeed = 100
 
+wallColor :: Color
+wallColor = greyN 0.5
+
 -- | Number of frames to show per second
 fps :: Int
 fps = 60
@@ -263,7 +266,8 @@ render game =
     wall :: Float -> Picture
     wall y = translate 0 y $ color wallColor $ rectangleSolid (fromIntegral width) 10
 
-    wallColor = greyN 0.5
+
+
     renderWalls = pictures [wall (fromIntegral height / 2), wall (- (fromIntegral height / 2))]
 
     -- Picture of a paddle at given x,y offset from origin

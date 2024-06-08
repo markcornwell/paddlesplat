@@ -4,6 +4,9 @@
 -- | Main routine for Pong like game.  This program is intended to be
 -- a minimal example of a framework that can be used as a template
 -- or a skeleton for more complex games.
+--
+-- Features
+-- * 
 
 module Main (main, PongGame, render, initialState) where
 
@@ -75,8 +78,8 @@ data PongGame = Game
                              -- Measured from center of paddle to y=0.
                              -- Zero is the middle of the screen. 
   , player2 :: Float         -- ^ Right player paddle height.
-  , padlVel1 :: Float        -- ^ y-velocity of paddle 1.
-  , padlVel2 :: Float        -- ^ y-velocity of paddle 2.
+  , paddleVel1 :: Float      -- ^ y-velocity of paddle 1.
+  , paddleVel2 :: Float      -- ^ y-velocity of paddle 2.
   , paused :: Bool           -- ^ True iff play is paused.
   } deriving Show
 
@@ -86,8 +89,8 @@ initialState = Game
   , ballVel = (-100, 50)
   , player1 = 0
   , player2 = 0
-  , padlVel1 = 0
-  , padlVel2 = 0
+  , paddleVel1 = 0
+  , paddleVel2 = 0
   , paused = False 
   }
 
@@ -116,9 +119,12 @@ update seconds game =
 
 -- | Move the paddle as indicated by paddle velocity
 paddleMove :: Seconds -> PongGame -> PongGame 
-paddleMove dt game = game { player1 = player1 game + padlVel1 game * dt
-                          , player2 = player2 game + padlVel2 game * dt
-                          }
+paddleMove dt game = game { player1 = p1' , player2 = p2' }
+  where 
+    limit = (fromIntegral height / 2) - (paddleHeight / 2)
+    bound y = max (min y limit) (-limit)
+    p1' = bound (player1 game + paddleVel1 game * dt) 
+    p2' = bound (player2 game + paddleVel2 game * dt) 
 
 -- | Detect a collision with a paddle.  Upon collisions,
 -- change the velocity of the ball to bounce off the paddle. 
@@ -169,7 +175,7 @@ Note how the semantics start as inline code inside the event handlers.sss
 As the game ecolves these tend to get factored out into an API like layer.
 
 I find I use this common trick to refactor the semantics tied to keystrokes and 
-mouseclick  events to simple commands I can call as an API.
+mouseclick events to simple actions I can call as an API.
 --------------------------------------------------------------------------------}
 
 {--- Control/Play.hs  -- uses Control/Command.hs for actions -}
@@ -184,57 +190,50 @@ handleKeys (EventKey (Char 'c') _ _ _) game = centerBall game
 handleKeys (EventKey (Char 'p') Down _ _) game = togglePause game 
 
 -- | For 'w' move the left paddle north
-handleKeys (EventKey (Char 'w') Down _ _) game = moveNorth1 game --- { padlVel1 = paddleSpeed } 
-handleKeys (EventKey (Char 'w') Up   _ _) game = moveStop1 game -- game { padlVel1 = 0           } 
-
+handleKeys (EventKey (Char 'w') Down _ _) game = move Player1 North game
+handleKeys (EventKey (Char 'w') Up   _ _) game = move Player1 Stop game 
 
 -- | For 's' move the left paddle south
-handleKeys (EventKey (Char 's') Down _ _) game = moveSouth1 game -- { padlVel1 = - paddleSpeed } 
-handleKeys (EventKey (Char 's') Up   _ _) game = moveStop1 game --- { padlVel1 = 0 } 
+handleKeys (EventKey (Char 's') Down _ _) game = move Player1 South game 
+handleKeys (EventKey (Char 's') Up   _ _) game = move Player1 Stop  game 
 
 -- | For up arrow move the right paddle north 
-handleKeys (EventKey (SpecialKey KeyUp) Down _ _) game = moveNorth2 game -- { padlVel2 = paddleSpeed } 
-handleKeys (EventKey (SpecialKey KeyUp) Up   _ _) game = moveStop2 game -- game { padlVel2 = 0           }
+handleKeys (EventKey (SpecialKey KeyUp) Down _ _) game = move Player2 North game 
+handleKeys (EventKey (SpecialKey KeyUp) Up   _ _) game = move Player2 Stop  game
 
 -- | for down arrow move the right paddle south
-handleKeys (EventKey (SpecialKey KeyDown) Down _ _) game = moveSouth2 game -- { padlVel2 = - paddleSpeed } 
-handleKeys (EventKey (SpecialKey KeyDown) Up   _ _) game = moveStop2 game -- { padlVel2 = 0 } 
+handleKeys (EventKey (SpecialKey KeyDown) Down _ _) game = move Player2 South game 
+handleKeys (EventKey (SpecialKey KeyDown) Up   _ _) game = move Player2 Stop  game 
 
 -- | Do nothing for the other events. 
 handleKeys _ game = game 
 
 {-- Control/Command.hs -- this is a callable API that provides all the user gameplay mechanics. ---}
 
+-- | reset the ball to the center
 centerBall :: PongGame -> PongGame 
 centerBall game = game { ballLoc = (0,0) }
 
+-- | pause and unpause the game
 togglePause :: PongGame -> PongGame 
 togglePause game = game { paused = (not . paused) game }
 
-moveNorth1 :: PongGame -> PongGame 
-moveNorth1 game = game { padlVel1 = paddleSpeed } 
+data Player = Player1 | Player2 
+data Action = North | South | Stop
 
-moveNorth2 :: PongGame -> PongGame 
-moveNorth2 game = game { padlVel2 = paddleSpeed } 
-
-moveSouth1 :: PongGame -> PongGame 
-moveSouth1 game = game { padlVel1 = - paddleSpeed } 
-
-moveSouth2 :: PongGame -> PongGame 
-moveSouth2 game = game { padlVel2 = - paddleSpeed } 
-
-moveStop1 :: PongGame -> PongGame 
-moveStop1 game = game { padlVel1 = 0 }
-
-moveStop2 :: PongGame -> PongGame 
-moveStop2 game = game { padlVel2 = 0 }
-
+-- | start moving player in the given direction
+move :: Player -> Action -> PongGame -> PongGame 
+move Player1 North game = game { paddleVel1 = paddleSpeed } 
+move Player2 North game = game { paddleVel2 = paddleSpeed } 
+move Player1 South game = game { paddleVel1 = - paddleSpeed } 
+move Player2 South game = game { paddleVel2 = - paddleSpeed } 
+move Player1 Stop  game = game { paddleVel1 = 0 }
+move Player2 Stop  game = game { paddleVel2 = 0 }
 
 {-- App/Main --}
 
 main :: IO ()
 main = play window background fps initialState render handleKeys update
-
 
 {-----------------------------------  View -------------------------------
 Rendering a view onto the model state.  Changes to the visual appearance

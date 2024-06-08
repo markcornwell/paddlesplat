@@ -19,7 +19,7 @@ save-coverage:
 	mkdir -p test-coverage
 	cp -r `stack path --local-hpc-root` test-coverage/`date "+%Y-%m-%d-%H%M%S"`
 
-# building productiction version for steam
+# building production version for steam
 # TBD
 
 linecounts:

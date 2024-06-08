@@ -54,7 +54,7 @@ paddleDistance = 200  --100.0
 
 -- | Speed of paddle in pixels per second
 paddleSpeed :: Float 
-paddleSpeed = 50
+paddleSpeed = 100
 
 -- | Number of frames to show per second
 fps :: Int
@@ -83,7 +83,7 @@ data PongGame = Game
 initialState :: PongGame
 initialState = Game
   { ballLoc = (0, 0)
-  , ballVel = (-20, 10)
+  , ballVel = (-100, 50)
   , player1 = 0
   , player2 = 0
   , padlVel1 = 0

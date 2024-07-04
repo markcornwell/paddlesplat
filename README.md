@@ -1,7 +1,6 @@
 # Paddle Splat
-This program is intended to be
-a minimal example of a framework that can be used as a template
-or a skeleton for more complex games.
+This program is intended to be a minimal example of a framework
+that can be used as a template for more complex games.
 
 ## Features Completed
 * Standard model-view-controller pattern

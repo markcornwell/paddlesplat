@@ -20,6 +20,7 @@ that can be used as a template for more complex games.
 * Remote multi-player
 * Introduction of spash screen and credits
 * Add automated testing
+* Others?
 
 ## Notes
 ### Scale and Customization

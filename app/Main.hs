@@ -32,7 +32,7 @@ offset = 200
 
 -- | The main window for the game
 window :: Display
-window = InWindow "Pong" (width,height) (offset,offset)
+window = InWindow "Pongwar" (width,height) (offset,offset)
 
 -- | A default background color 
 background :: Color
